@@ -1,0 +1,63 @@
+# Java compiled files
+*.class
+*.jar
+*.war
+*.ear
+target/
+*.iml
+
+# IntelliJ IDEA files
+.idea/
+*.iws
+*.ipr
+out/
+
+# Maven
+.mvn/
+mvnw
+mvnw.cmd
+
+# Node.js / React
+node_modules/
+build/
+dist/
+.env
+.env.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Database files
+*.db
+*.sql.backup
+
+# PostgreSQL
+*.pgsql
+
+# OS specific
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+
+# Package files
+*.zip
+*.tar.gz
+
+# Compiled output
+/dist
+/tmp
+/out-tsc
+
+# Environment variables
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.vscode/
+*.swp
+*.swo
+*~
