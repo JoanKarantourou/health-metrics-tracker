@@ -1,0 +1,25 @@
+# Application name
+spring:
+  application:
+    name: health-metrics-tracker
+
+  # Database connection configuration
+  datasource:
+    url: jdbc:postgresql://localhost:5432/health_metrics_db
+    username: postgres
+    password: admin123
+    driver-class-name: org.postgresql.Driver
+
+  # JPA/Hibernate configuration
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+# Server configuration
+server:
+  port: 8080
