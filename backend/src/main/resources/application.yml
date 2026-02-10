@@ -7,7 +7,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/health_metrics_db
     username: postgres
-    password: admin123
+    password: postgres
     driver-class-name: org.postgresql.Driver
 
   # JPA/Hibernate configuration
