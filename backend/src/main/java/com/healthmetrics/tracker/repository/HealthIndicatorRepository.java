@@ -48,4 +48,12 @@ public interface HealthIndicatorRepository extends JpaRepository<HealthIndicator
      * @return List of indicators matching both criteria
      */
     List<HealthIndicator> findByCategoryAndActive(String category, Boolean active);
+
+    /**
+     * Finds all indicators of a specific data type.
+     *
+     * @param dataType The data type (e.g., "NUMBER", "PERCENTAGE", "BOOLEAN")
+     * @return List of indicators with that data type
+     */
+    List<HealthIndicator> findByDataType(String dataType);
 }

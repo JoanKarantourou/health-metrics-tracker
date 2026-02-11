@@ -47,4 +47,14 @@ public interface DataValueRepository extends JpaRepository<DataValue, Long> {
             @Param("region") String region,
             @Param("startDate") LocalDate startDate
     );
+
+    /**
+     * Finds data values by facility, indicator, and period start date.
+     * Used to check for duplicates before inserting new data.
+     */
+    List<DataValue> findByFacilityIdAndIndicatorIdAndPeriodStart(
+            Long facilityId,
+            Long indicatorId,
+            LocalDate periodStart
+    );
 }
