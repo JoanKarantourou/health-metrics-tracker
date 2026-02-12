@@ -5,6 +5,7 @@
 import React from "react";
 import "./App.css";
 import FacilityList from "./components/facilities/FacilityList";
+import DataEntryForm from "./components/dataentry/DataEntryForm";
 
 function App() {
   return (
@@ -17,6 +18,13 @@ function App() {
 
       {/* Main content */}
       <main className="app-main">
+        {/* Show Data Entry Form */}
+        <DataEntryForm />
+
+        {/* Separator */}
+        <div style={{ margin: "40px 0", borderTop: "2px solid #e0e0e0" }}></div>
+
+        {/* Show Facility List below the form */}
         <FacilityList />
       </main>
 
