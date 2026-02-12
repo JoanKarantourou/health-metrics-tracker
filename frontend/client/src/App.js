@@ -1,38 +1,40 @@
 /**
  * Main App Component
- * Root component of the application
+ * Root component with routing configuration
  */
+
 import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import "./App.css";
-import FacilityList from "./components/facilities/FacilityList";
-import DataEntryForm from "./components/dataentry/DataEntryForm";
+
+// Import components
+import Navigation from "./components/common/Navigation";
+import Dashboard from "./pages/Dashboard";
+import FacilitiesPage from "./pages/FacilitiesPage";
+import DataEntryPage from "./pages/DataEntryPage";
 
 function App() {
   return (
-    <div className="App">
-      {/* Header */}
-      <header className="app-header">
-        <h1>🏥 Health Metrics Tracker</h1>
-        <p className="subtitle">Track and visualize health facility data</p>
-      </header>
+    <Router>
+      <div className="App">
+        {/* Navigation - shows on all pages */}
+        <Navigation />
 
-      {/* Main content */}
-      <main className="app-main">
-        {/* Show Data Entry Form */}
-        <DataEntryForm />
+        {/* Main content area - changes based on route */}
+        <main className="app-main">
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/facilities" element={<FacilitiesPage />} />
+            <Route path="/data-entry" element={<DataEntryPage />} />
+          </Routes>
+        </main>
 
-        {/* Separator */}
-        <div style={{ margin: "40px 0", borderTop: "2px solid #e0e0e0" }}></div>
-
-        {/* Show Facility List below the form */}
-        <FacilityList />
-      </main>
-
-      {/* Footer */}
-      <footer className="app-footer">
-        <p>Health Metrics Tracker © 2026 | Built with React & Spring Boot</p>
-      </footer>
-    </div>
+        {/* Footer - shows on all pages */}
+        <footer className="app-footer">
+          <p>Health Metrics Tracker © 2026 | Built with React & Spring Boot</p>
+        </footer>
+      </div>
+    </Router>
   );
 }
 
