@@ -32,14 +32,24 @@ public class FacilityController {
 
     /**
      * GET /api/facilities
-     * Retrieves all facilities in the system.
+     * Retrieves all facilities in the system with optional filtering.
      *
      * @return List of all facilities with HTTP 200 OK
      */
     @GetMapping
-    public ResponseEntity<List<FacilityDTO>> getAllFacilities() {
-        List<FacilityDTO> facilities = facilityService.getAllFacilities();
-        return ResponseEntity.ok(facilities);
+    public ResponseEntity<List<FacilityDTO>> getAllFacilities(
+            @RequestParam(required = false) String region,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) Boolean active,
+            @RequestParam(required = false) String search
+    ) {
+        /// If no filters provided, return all facilities
+        if (region == null && type == null && active == null && search == null) {
+            return ResponseEntity.ok(facilityService.getAllFacilities());
+        }
+
+        /// Apply filters based on provided parameters
+        return ResponseEntity.ok(facilityService.searchFacilities(region, type, active, search));
     }
 
     /**

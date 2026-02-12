@@ -91,6 +91,25 @@ public class FacilityService {
     }
 
     /**
+     * Search facilities with multiple optional filters.
+     * This method handles all combinations of filters gracefully.
+     * Allows flexible querying: use any combination of filters or none at all.
+     *
+     * @param region Filter by region (null = no filter)
+     * @param type Filter by facility type (null = no filter)
+     * @param active Filter by active status (null = no filter)
+     * @param search Search term for name/code (null = no filter)
+     * @return List of matching facilities
+     */
+    public List<FacilityDTO> searchFacilities(String region, String type, Boolean active, String search) {
+        // Use the repository's advanced search query
+        return facilityRepository.searchWithFilters(region, type, active, search)
+                .stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Creates a new facility in the system.
      * Validates that the facility code doesn't already exist.
      *
@@ -105,16 +124,16 @@ public class FacilityService {
                     "Facility with code '" + facilityDTO.getCode() + "' already exists");
         }
 
-        // Convert DTO to entity
+        /// Convert DTO to entity
         Facility facility = convertToEntity(facilityDTO);
 
-        // Set default values for new facilities
+        /// Set default values for new facilities
         facility.setActive(true);
 
-        // Save to database
+        /// Save to database
         Facility savedFacility = facilityRepository.save(facility);
 
-        // Convert back to DTO and return
+        /// Convert back to DTO and return
         return convertToDTO(savedFacility);
     }
 
@@ -128,12 +147,12 @@ public class FacilityService {
      * @throws ResourceNotFoundException if facility doesn't exist
      */
     public FacilityDTO updateFacility(Long id, FacilityDTO facilityDTO) {
-        // Check if facility exists
+        /// Check if facility exists
         Facility existingFacility = facilityRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Facility not found with id: " + id));
 
-        // Business rule: If changing code, ensure new code doesn't already exist
+        /// Business rule: If changing code, ensure new code doesn't already exist
         if (facilityDTO.getCode() != null &&
                 !facilityDTO.getCode().equals(existingFacility.getCode())) {
 
@@ -144,7 +163,7 @@ public class FacilityService {
             existingFacility.setCode(facilityDTO.getCode());
         }
 
-        // Update fields (only if provided)
+        /// Update fields (only if provided)
         if (facilityDTO.getName() != null) {
             existingFacility.setName(facilityDTO.getName());
         }
@@ -167,7 +186,7 @@ public class FacilityService {
             existingFacility.setActive(facilityDTO.getActive());
         }
 
-        // Save and return
+        /// Save and return
         Facility updatedFacility = facilityRepository.save(existingFacility);
         return convertToDTO(updatedFacility);
     }
@@ -185,7 +204,7 @@ public class FacilityService {
                     "Facility not found with id: " + id);
         }
 
-        // Delete the facility
+        /// Delete the facility
         facilityRepository.deleteById(id);
     }
 
@@ -225,8 +244,8 @@ public class FacilityService {
         return convertToDTO(reactivated);
     }
 
-    // ==================== MAPPING METHODS ====================
-    // These methods convert between Entity and DTO
+    /// ==================== MAPPING METHODS ====================
+    /// These methods convert between Entity and DTO
 
     /**
      * Converts a Facility entity to FacilityDTO.
