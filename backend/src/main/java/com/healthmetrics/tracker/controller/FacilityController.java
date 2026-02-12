@@ -4,6 +4,10 @@ import com.healthmetrics.tracker.dto.FacilityDTO;
 import com.healthmetrics.tracker.service.FacilityService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,7 +17,6 @@ import java.util.List;
 import com.healthmetrics.tracker.exception.ResourceNotFoundException;
 import com.healthmetrics.tracker.exception.ValidationException;
 import com.healthmetrics.tracker.exception.DuplicateResourceException;
-import org.springframework.web.bind.annotation.*;
 
 /**
  * REST Controller for Facility endpoints.
@@ -24,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/facilities")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:3000")  // Allows React frontend to call this API
+@CrossOrigin(origins = "http://localhost:3000")
 public class FacilityController {
 
     /// Service is injected via constructor
@@ -32,24 +35,45 @@ public class FacilityController {
 
     /**
      * GET /api/facilities
-     * Retrieves all facilities in the system with optional filtering.
+     * Retrieves facilities with optional filtering and pagination.
      *
-     * @return List of all facilities with HTTP 200 OK
+     * Query Parameters:
+     * - region: Filter by region (optional)
+     * - type: Filter by facility type (optional)
+     * - active: Filter by active status (optional)
+     * - search: Search by name/code (optional)
+     * - page: Page number (default: 0)
+     * - size: Page size (default: 10)
+     * - sort: Sort field (default: name)
+     * - direction: Sort direction (default: asc)
+     *
+     * @return Paginated list of facilities with HTTP 200 OK
      */
     @GetMapping
-    public ResponseEntity<List<FacilityDTO>> getAllFacilities(
+    public ResponseEntity<Page<FacilityDTO>> getAllFacilities(
             @RequestParam(required = false) String region,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) Boolean active,
-            @RequestParam(required = false) String search
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "name") String sort,
+            @RequestParam(defaultValue = "asc") String direction
     ) {
-        /// If no filters provided, return all facilities
-        if (region == null && type == null && active == null && search == null) {
-            return ResponseEntity.ok(facilityService.getAllFacilities());
-        }
+        // Create Sort object based on direction
+        Sort.Direction sortDirection = direction.equalsIgnoreCase("desc")
+                ? Sort.Direction.DESC
+                : Sort.Direction.ASC;
 
-        /// Apply filters based on provided parameters
-        return ResponseEntity.ok(facilityService.searchFacilities(region, type, active, search));
+        // Create Pageable object (page number, page size, sorting)
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sort));
+
+        // Get paginated results from service
+        Page<FacilityDTO> facilitiesPage = facilityService.searchFacilitiesWithPagination(
+                region, type, active, search, pageable
+        );
+
+        return ResponseEntity.ok(facilitiesPage);
     }
 
     /**

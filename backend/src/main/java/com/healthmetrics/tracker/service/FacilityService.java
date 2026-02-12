@@ -5,8 +5,10 @@ import com.healthmetrics.tracker.entity.Facility;
 import com.healthmetrics.tracker.exception.ResourceNotFoundException;
 import com.healthmetrics.tracker.repository.FacilityRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -107,6 +109,43 @@ public class FacilityService {
                 .stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Search facilities with multiple optional filters AND pagination.
+     * This method supports both filtering and pagination for efficient data retrieval.
+     *
+     * Page<T> contains:
+     * - content: The actual list of items for this page
+     * - totalElements: Total number of items across all pages
+     * - totalPages: Total number of pages
+     * - number: Current page number (0-indexed)
+     * - size: Number of items per page
+     *
+     * C# Equivalent: Similar to returning PagedList<T> or IPagedList<T>
+     *
+     * @param region Filter by region (null = no filter)
+     * @param type Filter by facility type (null = no filter)
+     * @param active Filter by active status (null = no filter)
+     * @param search Search term for name/code (null = no filter)
+     * @param pageable Pagination info (page number, size, sorting)
+     * @return Page of matching facilities with pagination metadata
+     */
+    public Page<FacilityDTO> searchFacilitiesWithPagination(
+            String region,
+            String type,
+            Boolean active,
+            String search,
+            Pageable pageable) {
+
+        // Get paginated results from repository
+        Page<Facility> facilitiesPage = facilityRepository.searchWithFiltersPageable(
+                region, type, active, search, pageable
+        );
+
+        // Convert Page<Facility> to Page<FacilityDTO>
+        // Page.map() is similar to LINQ Select for paged results
+        return facilitiesPage.map(this::convertToDTO);
     }
 
     /**
