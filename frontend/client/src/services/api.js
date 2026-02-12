@@ -47,4 +47,18 @@ apiClient.interceptors.response.use(
   },
 );
 
+export const facilityService = {
+  /**
+   * Get all facilities with optional filters.
+   * @param {Object} params - Optional query parameters (search, region, type, active)
+   * @returns {Promise} Axios response with facility data
+   */
+  getAll: (params = {}) => apiClient.get("/facilities", { params }),
+
+  getById: (id) => apiClient.get(`/facilities/${id}`),
+  create: (data) => apiClient.post("/facilities", data),
+  update: (id, data) => apiClient.put(`/facilities/${id}`, data),
+  delete: (id) => apiClient.delete(`/facilities/${id}`),
+};
+
 export default apiClient;

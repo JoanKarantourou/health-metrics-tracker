@@ -1,174 +1,243 @@
-/**
- * FacilityList Component
- * Displays a list of all health facilities in a table format
- *
- * Features:
- * - Fetches facilities from API on load
- * - Displays loading state while fetching
- * - Shows error messages if fetch fails
- * - Displays facilities in a formatted table
- * - Provides View/Edit actions for each facility
- */
-
 import React, { useEffect, useState } from "react";
-import { facilityService } from "../../services";
+import { facilityService } from "../../services/api";
 import "./FacilityList.css";
 
 /**
- * FacilityList functional component
+ * FacilityList Component
+ * Displays a filterable, searchable list of health facilities.
+ *
+ * Features:
+ * - Search by facility name or code
+ * - Filter by region, type, and active status
+ * - Real-time filtering as user types/selects
  */
 function FacilityList() {
-  // State management
-  const [facilities, setFacilities] = useState([]); // List of facilities
-  const [loading, setLoading] = useState(true); // Loading indicator
-  const [error, setError] = useState(null); // Error message
+  // State for facilities data
+  const [facilities, setFacilities] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // State for filters
+  const [filters, setFilters] = useState({
+    search: "",
+    region: "",
+    type: "",
+    active: "",
+  });
+
+  // Unique values for dropdown options (extracted from facilities)
+  const [regions, setRegions] = useState([]);
+  const [types, setTypes] = useState([]);
 
   /**
-   * useEffect Hook - runs when component mounts
-   * The empty array [] means "run once when component loads"
+   * Fetch facilities when component mounts or filters change.
+   * useEffect = runs side effects
    */
   useEffect(() => {
     fetchFacilities();
-  }, []); // Empty dependency array = run once on mount
+  }, [filters]); // Re-run when filters change
 
   /**
-   * Fetch facilities from the API
+   * Fetch facilities from API with current filters.
+   * Builds query string from non-empty filter values.
    */
   const fetchFacilities = async () => {
     try {
       setLoading(true);
-      setError(null);
 
-      // Call the API service
-      const response = await facilityService.getAll();
+      // Build query parameters (only include non-empty filters)
+      const params = {};
+      if (filters.search) params.search = filters.search;
+      if (filters.region) params.region = filters.region;
+      if (filters.type) params.type = filters.type;
+      if (filters.active) params.active = filters.active === "true"; // Convert string to boolean
 
-      // Update state with the fetched data
+      // Make API call with filters
+      const response = await facilityService.getAll(params);
       setFacilities(response.data);
 
-      console.log("✅ Fetched facilities:", response.data.length);
+      // Extract unique regions and types for dropdowns (only on first load)
+      if (regions.length === 0) {
+        const uniqueRegions = [
+          ...new Set(response.data.map((f) => f.region)),
+        ].sort();
+        const uniqueTypes = [
+          ...new Set(response.data.map((f) => f.type)),
+        ].sort();
+        setRegions(uniqueRegions);
+        setTypes(uniqueTypes);
+      }
+
+      setError(null);
     } catch (err) {
-      // Handle errors (similar to try-catch in .NET)
-      console.error("❌ Error fetching facilities:", err);
-      setError(
-        "Failed to load facilities. Please ensure the backend is running.",
-      );
+      console.error("Error fetching facilities:", err);
+      setError("Failed to load facilities. Please try again.");
     } finally {
-      // Always runs after try/catch
       setLoading(false);
     }
   };
 
   /**
-   * Handle View button click
-   * @param {number} id - Facility ID
+   * Handle filter input changes.
+   * Updates the filters state, which triggers useEffect to re-fetch data.
    */
-  const handleView = (id) => {
-    console.log("View facility:", id);
-    // TODO: Navigate to facility detail page
-    alert(`View facility ${id} - Coming soon!`);
+  const handleFilterChange = (filterName, value) => {
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      [filterName]: value,
+    }));
   };
 
   /**
-   * Handle Edit button click
-   * @param {number} id - Facility ID
+   * Clear all filters and reset to show all facilities.
    */
-  const handleEdit = (id) => {
-    console.log("Edit facility:", id);
-    // TODO: Navigate to facility edit page
-    alert(`Edit facility ${id} - Coming soon!`);
+  const handleClearFilters = () => {
+    setFilters({
+      search: "",
+      region: "",
+      type: "",
+      active: "",
+    });
   };
 
   /**
-   * Render loading state
+   * Check if any filters are currently active.
    */
-  if (loading) {
+  const hasActiveFilters = () => {
+    return filters.search || filters.region || filters.type || filters.active;
+  };
+
+  // Loading state
+  if (loading && facilities.length === 0) {
     return (
       <div className="facility-list-container">
-        <div className="loading">
-          <div className="spinner"></div>
-          <p>Loading facilities...</p>
-        </div>
+        <div className="loading">Loading facilities...</div>
       </div>
     );
   }
 
-  /**
-   * Render error state
-   */
+  // Error state
   if (error) {
     return (
       <div className="facility-list-container">
-        <div className="error-message">
-          <h3>⚠️ Error</h3>
-          <p>{error}</p>
-          <button onClick={fetchFacilities} className="btn-retry">
-            🔄 Retry
-          </button>
-        </div>
+        <div className="error">{error}</div>
       </div>
     );
   }
 
-  /**
-   * Render main content - the facilities table
-   */
   return (
     <div className="facility-list-container">
-      {/* Header section */}
-      <div className="list-header">
-        <h2>Health Facilities</h2>
-        <button className="btn-primary" onClick={fetchFacilities}>
-          🔄 Refresh
-        </button>
+      <h2>Health Facilities</h2>
+
+      {/* Filter Section */}
+      <div className="filters-section">
+        {/* Search Box */}
+        <div className="filter-group">
+          <label htmlFor="search">Search:</label>
+          <input
+            id="search"
+            type="text"
+            placeholder="Search by name or code..."
+            value={filters.search}
+            onChange={(e) => handleFilterChange("search", e.target.value)}
+            className="filter-input"
+          />
+        </div>
+
+        {/* Region Filter */}
+        <div className="filter-group">
+          <label htmlFor="region">Region:</label>
+          <select
+            id="region"
+            value={filters.region}
+            onChange={(e) => handleFilterChange("region", e.target.value)}
+            className="filter-select"
+          >
+            <option value="">All Regions</option>
+            {regions.map((region) => (
+              <option key={region} value={region}>
+                {region}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Type Filter */}
+        <div className="filter-group">
+          <label htmlFor="type">Type:</label>
+          <select
+            id="type"
+            value={filters.type}
+            onChange={(e) => handleFilterChange("type", e.target.value)}
+            className="filter-select"
+          >
+            <option value="">All Types</option>
+            {types.map((type) => (
+              <option key={type} value={type}>
+                {type}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Active Status Filter */}
+        <div className="filter-group">
+          <label htmlFor="active">Status:</label>
+          <select
+            id="active"
+            value={filters.active}
+            onChange={(e) => handleFilterChange("active", e.target.value)}
+            className="filter-select"
+          >
+            <option value="">All Statuses</option>
+            <option value="true">Active</option>
+            <option value="false">Inactive</option>
+          </select>
+        </div>
+
+        {/* Clear Filters Button */}
+        {hasActiveFilters() && (
+          <button onClick={handleClearFilters} className="clear-filters-btn">
+            Clear Filters
+          </button>
+        )}
       </div>
 
-      {/* Statistics summary */}
-      <div className="stats-summary">
-        <div className="stat-card">
-          <span className="stat-label">Total Facilities</span>
-          <span className="stat-value">{facilities.length}</span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-label">Active</span>
-          <span className="stat-value">
-            {facilities.filter((f) => f.active).length}
+      {/* Results Count */}
+      <div className="results-info">
+        {loading ? (
+          <span>Updating...</span>
+        ) : (
+          <span>
+            Showing {facilities.length}{" "}
+            {facilities.length === 1 ? "facility" : "facilities"}
+            {hasActiveFilters() && " (filtered)"}
           </span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-label">Inactive</span>
-          <span className="stat-value">
-            {facilities.filter((f) => !f.active).length}
-          </span>
-        </div>
+        )}
       </div>
 
-      {/* Facilities table */}
-      <div className="table-container">
-        <table className="facilities-table">
-          <thead>
-            <tr>
-              <th>Code</th>
-              <th>Name</th>
-              <th>Type</th>
-              <th>Region</th>
-              <th>District</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {facilities.length === 0 ? (
+      {/* Facilities Table */}
+      {facilities.length === 0 ? (
+        <div className="no-results">
+          No facilities found matching your criteria.
+        </div>
+      ) : (
+        <div className="table-container">
+          <table className="facilities-table">
+            <thead>
               <tr>
-                <td colSpan="7" className="no-data">
-                  No facilities found
-                </td>
+                <th>Code</th>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Region</th>
+                <th>District</th>
+                <th>Status</th>
+                <th>Actions</th>
               </tr>
-            ) : (
-              facilities.map((facility) => (
-                <tr
-                  key={facility.id}
-                  className={!facility.active ? "inactive-row" : ""}
-                >
+            </thead>
+            <tbody>
+              {facilities.map((facility) => (
+                <tr key={facility.id}>
                   <td className="code-cell">{facility.code}</td>
                   <td className="name-cell">{facility.name}</td>
                   <td>{facility.type}</td>
@@ -178,36 +247,19 @@ function FacilityList() {
                     <span
                       className={`status-badge ${facility.active ? "active" : "inactive"}`}
                     >
-                      {facility.active ? "✓ Active" : "✗ Inactive"}
+                      {facility.active ? "Active" : "Inactive"}
                     </span>
                   </td>
                   <td className="actions-cell">
-                    <button
-                      className="btn-action btn-view"
-                      onClick={() => handleView(facility.id)}
-                      title="View details"
-                    >
-                      👁️ View
-                    </button>
-                    <button
-                      className="btn-action btn-edit"
-                      onClick={() => handleEdit(facility.id)}
-                      title="Edit facility"
-                    >
-                      ✏️ Edit
-                    </button>
+                    <button className="btn-view">View</button>
+                    <button className="btn-edit">Edit</button>
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Footer info */}
-      <div className="list-footer">
-        <p>Showing {facilities.length} facilities</p>
-      </div>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
