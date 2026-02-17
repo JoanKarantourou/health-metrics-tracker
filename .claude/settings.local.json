@@ -9,7 +9,10 @@
       "Bash(./mvnw dependency:build-classpath:*)",
       "Bash(tr:*)",
       "Bash(jar tf:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(pip install:*)",
+      "Bash(python:*)",
+      "Bash(./mvnw compile:*)"
     ]
   }
 }
