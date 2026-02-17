@@ -261,11 +261,11 @@ class FacilityServiceTest {
         // Mock repository to return existing facility with same code
         when(facilityRepository.findByCode("FAC001")).thenReturn(Optional.of(testFacility));
 
-        // Act & Assert - expect IllegalArgumentException (based on actual service implementation)
-        IllegalArgumentException exception = assertThrows(
-                IllegalArgumentException.class,
+        // Act & Assert - expect DuplicateResourceException
+        com.healthmetrics.tracker.exception.DuplicateResourceException exception = assertThrows(
+                com.healthmetrics.tracker.exception.DuplicateResourceException.class,
                 () -> facilityService.createFacility(duplicateFacilityDTO),
-                "Should throw IllegalArgumentException"
+                "Should throw DuplicateResourceException"
         );
 
         assertTrue(exception.getMessage().contains("already exists"),

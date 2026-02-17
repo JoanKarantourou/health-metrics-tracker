@@ -2,9 +2,12 @@ package com.healthmetrics.tracker.service;
 
 import com.healthmetrics.tracker.dto.FacilityDTO;
 import com.healthmetrics.tracker.entity.Facility;
+import com.healthmetrics.tracker.exception.DuplicateResourceException;
 import com.healthmetrics.tracker.exception.ResourceNotFoundException;
 import com.healthmetrics.tracker.repository.FacilityRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +35,8 @@ public class FacilityService {
      *
      * @return List of all facilities as DTOs
      */
+    @Transactional(readOnly = true)
+    @Cacheable(value = "facilities", key = "'all'")
     public List<FacilityDTO> getAllFacilities() {
         return facilityRepository.findAll().stream()
                 .map(this::convertToDTO)
@@ -45,6 +50,7 @@ public class FacilityService {
      * @return FacilityDTO if found
      * @throws ResourceNotFoundException if facility doesn't exist
      */
+    @Transactional(readOnly = true)
     public FacilityDTO getFacilityById(Long id) {
         Facility facility = facilityRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -60,6 +66,7 @@ public class FacilityService {
      * @return FacilityDTO if found
      * @throws ResourceNotFoundException if facility doesn't exist
      */
+    @Transactional(readOnly = true)
     public FacilityDTO getFacilityByCode(String code) {
         Facility facility = facilityRepository.findByCode(code)
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -74,6 +81,7 @@ public class FacilityService {
      * @param region The region name (e.g., "Attica")
      * @return List of facilities in that region
      */
+    @Transactional(readOnly = true)
     public List<FacilityDTO> getFacilitiesByRegion(String region) {
         return facilityRepository.findByRegion(region).stream()
                 .map(this::convertToDTO)
@@ -86,6 +94,8 @@ public class FacilityService {
      *
      * @return List of active facilities
      */
+    @Transactional(readOnly = true)
+    @Cacheable(value = "facilities", key = "'active'")
     public List<FacilityDTO> getActiveFacilities() {
         return facilityRepository.findByActive(true).stream()
                 .map(this::convertToDTO)
@@ -103,6 +113,7 @@ public class FacilityService {
      * @param search Search term for name/code (null = no filter)
      * @return List of matching facilities
      */
+    @Transactional(readOnly = true)
     public List<FacilityDTO> searchFacilities(String region, String type, Boolean active, String search) {
         // Use the repository's advanced search query
         return facilityRepository.searchWithFilters(region, type, active, search)
@@ -131,6 +142,7 @@ public class FacilityService {
      * @param pageable Pagination info (page number, size, sorting)
      * @return Page of matching facilities with pagination metadata
      */
+    @Transactional(readOnly = true)
     public Page<FacilityDTO> searchFacilitiesWithPagination(
             String region,
             String type,
@@ -156,10 +168,11 @@ public class FacilityService {
      * @return The created facility as DTO
      * @throws IllegalArgumentException if facility code already exists
      */
+    @CacheEvict(value = "facilities", allEntries = true)
     public FacilityDTO createFacility(FacilityDTO facilityDTO) {
         // Business rule: Facility code must be unique
         if (facilityRepository.findByCode(facilityDTO.getCode()).isPresent()) {
-            throw new IllegalArgumentException(
+            throw new DuplicateResourceException(
                     "Facility with code '" + facilityDTO.getCode() + "' already exists");
         }
 
@@ -185,6 +198,7 @@ public class FacilityService {
      * @return The updated facility as DTO
      * @throws ResourceNotFoundException if facility doesn't exist
      */
+    @CacheEvict(value = "facilities", allEntries = true)
     public FacilityDTO updateFacility(Long id, FacilityDTO facilityDTO) {
         /// Check if facility exists
         Facility existingFacility = facilityRepository.findById(id)
@@ -236,6 +250,7 @@ public class FacilityService {
      * @param id The ID of the facility to delete
      * @throws ResourceNotFoundException if facility doesn't exist
      */
+    @CacheEvict(value = "facilities", allEntries = true)
     public void deleteFacility(Long id) {
         // Check if facility exists
         if (!facilityRepository.existsById(id)) {
@@ -256,6 +271,7 @@ public class FacilityService {
      * @return The deactivated facility as DTO
      * @throws ResourceNotFoundException if facility doesn't exist
      */
+    @CacheEvict(value = "facilities", allEntries = true)
     public FacilityDTO deactivateFacility(Long id) {
         Facility facility = facilityRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -273,6 +289,7 @@ public class FacilityService {
      * @return The reactivated facility as DTO
      * @throws ResourceNotFoundException if facility doesn't exist
      */
+    @CacheEvict(value = "facilities", allEntries = true)
     public FacilityDTO reactivateFacility(Long id) {
         Facility facility = facilityRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(

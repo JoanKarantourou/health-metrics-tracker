@@ -237,11 +237,11 @@ class HealthIndicatorServiceTest {
         // Mock repository to return existing indicator with same code
         when(healthIndicatorRepository.findByCode("IND001")).thenReturn(Optional.of(testIndicator));
 
-        // Act & Assert - expect IllegalArgumentException
-        IllegalArgumentException exception = assertThrows(
-                IllegalArgumentException.class,
+        // Act & Assert - expect DuplicateResourceException
+        com.healthmetrics.tracker.exception.DuplicateResourceException exception = assertThrows(
+                com.healthmetrics.tracker.exception.DuplicateResourceException.class,
                 () -> healthIndicatorService.createIndicator(duplicateIndicatorDTO),
-                "Should throw IllegalArgumentException"
+                "Should throw DuplicateResourceException"
         );
 
         assertTrue(exception.getMessage().contains("already exists"),

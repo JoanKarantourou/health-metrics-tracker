@@ -29,7 +29,13 @@ import java.time.LocalDateTime;
         uniqueConstraints = @UniqueConstraint(
                 columnNames = {"facility_id", "indicator_id", "period_start"},
                 name = "uk_facility_indicator_period"
-        )
+        ),
+        indexes = {
+                @Index(name = "idx_dv_facility", columnList = "facility_id"),
+                @Index(name = "idx_dv_indicator", columnList = "indicator_id"),
+                @Index(name = "idx_dv_period_start", columnList = "period_start"),
+                @Index(name = "idx_dv_facility_period", columnList = "facility_id, period_start, period_end")
+        }
 )
 @EntityListeners(AuditingEntityListener.class)
 @Data

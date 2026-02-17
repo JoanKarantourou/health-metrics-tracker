@@ -2,9 +2,13 @@ package com.healthmetrics.tracker.service;
 
 import com.healthmetrics.tracker.dto.HealthIndicatorDTO;
 import com.healthmetrics.tracker.entity.HealthIndicator;
+import com.healthmetrics.tracker.exception.DuplicateResourceException;
 import com.healthmetrics.tracker.exception.ResourceNotFoundException;
+import com.healthmetrics.tracker.exception.ValidationException;
 import com.healthmetrics.tracker.repository.HealthIndicatorRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +37,8 @@ public class HealthIndicatorService {
      *
      * @return List of all indicators as DTOs
      */
+    @Transactional(readOnly = true)
+    @Cacheable(value = "indicators", key = "'all'")
     public List<HealthIndicatorDTO> getAllIndicators() {
         return healthIndicatorRepository.findAll().stream()
                 .map(this::convertToDTO)
@@ -46,6 +52,7 @@ public class HealthIndicatorService {
      * @return HealthIndicatorDTO if found
      * @throws ResourceNotFoundException if indicator doesn't exist
      */
+    @Transactional(readOnly = true)
     public HealthIndicatorDTO getIndicatorById(Long id) {
         HealthIndicator indicator = healthIndicatorRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -61,6 +68,7 @@ public class HealthIndicatorService {
      * @return HealthIndicatorDTO if found
      * @throws ResourceNotFoundException if indicator doesn't exist
      */
+    @Transactional(readOnly = true)
     public HealthIndicatorDTO getIndicatorByCode(String code) {
         HealthIndicator indicator = healthIndicatorRepository.findByCode(code)
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -75,6 +83,7 @@ public class HealthIndicatorService {
      * @param category The category name (e.g., "Maternal Health", "Disease Control")
      * @return List of indicators in that category
      */
+    @Transactional(readOnly = true)
     public List<HealthIndicatorDTO> getIndicatorsByCategory(String category) {
         return healthIndicatorRepository.findByCategory(category).stream()
                 .map(this::convertToDTO)
@@ -88,6 +97,8 @@ public class HealthIndicatorService {
      *
      * @return List of active indicators
      */
+    @Transactional(readOnly = true)
+    @Cacheable(value = "indicators", key = "'active'")
     public List<HealthIndicatorDTO> getActiveIndicators() {
         return healthIndicatorRepository.findByActive(true).stream()
                 .map(this::convertToDTO)
@@ -101,6 +112,7 @@ public class HealthIndicatorService {
      * @param dataType The data type (e.g., "NUMBER", "PERCENTAGE", "BOOLEAN")
      * @return List of indicators with that data type
      */
+    @Transactional(readOnly = true)
     public List<HealthIndicatorDTO> getIndicatorsByDataType(String dataType) {
         return healthIndicatorRepository.findByDataType(dataType).stream()
                 .map(this::convertToDTO)
@@ -115,10 +127,11 @@ public class HealthIndicatorService {
      * @return The created indicator as DTO
      * @throws IllegalArgumentException if indicator code already exists
      */
+    @CacheEvict(value = "indicators", allEntries = true)
     public HealthIndicatorDTO createIndicator(HealthIndicatorDTO indicatorDTO) {
         // Business rule: Indicator code must be unique
         if (healthIndicatorRepository.findByCode(indicatorDTO.getCode()).isPresent()) {
-            throw new IllegalArgumentException(
+            throw new DuplicateResourceException(
                     "Health indicator with code '" + indicatorDTO.getCode() + "' already exists");
         }
 
@@ -147,6 +160,7 @@ public class HealthIndicatorService {
      * @return The updated indicator as DTO
      * @throws ResourceNotFoundException if indicator doesn't exist
      */
+    @CacheEvict(value = "indicators", allEntries = true)
     public HealthIndicatorDTO updateIndicator(Long id, HealthIndicatorDTO indicatorDTO) {
         // Check if indicator exists
         HealthIndicator existingIndicator = healthIndicatorRepository.findById(id)
@@ -196,6 +210,7 @@ public class HealthIndicatorService {
      * @param id The ID of the indicator to delete
      * @throws ResourceNotFoundException if indicator doesn't exist
      */
+    @CacheEvict(value = "indicators", allEntries = true)
     public void deleteIndicator(Long id) {
         // Check if indicator exists
         if (!healthIndicatorRepository.existsById(id)) {
@@ -218,6 +233,7 @@ public class HealthIndicatorService {
      * @return The deactivated indicator as DTO
      * @throws ResourceNotFoundException if indicator doesn't exist
      */
+    @CacheEvict(value = "indicators", allEntries = true)
     public HealthIndicatorDTO deactivateIndicator(Long id) {
         HealthIndicator indicator = healthIndicatorRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -235,6 +251,7 @@ public class HealthIndicatorService {
      * @return The reactivated indicator as DTO
      * @throws ResourceNotFoundException if indicator doesn't exist
      */
+    @CacheEvict(value = "indicators", allEntries = true)
     public HealthIndicatorDTO reactivateIndicator(Long id) {
         HealthIndicator indicator = healthIndicatorRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -256,14 +273,14 @@ public class HealthIndicatorService {
      */
     private void validateDataType(String dataType) {
         if (dataType == null || dataType.trim().isEmpty()) {
-            throw new IllegalArgumentException("Data type is required");
+            throw new ValidationException("Data type is required");
         }
 
         String upperDataType = dataType.toUpperCase();
         if (!upperDataType.equals("NUMBER") &&
                 !upperDataType.equals("PERCENTAGE") &&
                 !upperDataType.equals("BOOLEAN")) {
-            throw new IllegalArgumentException(
+            throw new ValidationException(
                     "Data type must be NUMBER, PERCENTAGE, or BOOLEAN. Got: " + dataType);
         }
     }

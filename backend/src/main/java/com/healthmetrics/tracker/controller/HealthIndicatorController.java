@@ -24,7 +24,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/indicators")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:3000")
 public class HealthIndicatorController {
 
     /// Service is injected via constructor (using @RequiredArgsConstructor)

@@ -1,5 +1,7 @@
 package com.healthmetrics.tracker.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,40 +18,29 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class FacilityDTO {
 
-    /// Unique identifier for the facility.
     private Long id;
 
-    /// Unique facility code. Example: "FAC001", "HOSP_ATH_001"
+    @NotBlank(message = "Facility code is required")
+    @Size(max = 50, message = "Facility code must not exceed 50 characters")
     private String code;
 
-    /// Full name of the facility. Example: "Athens General Hospital"
+    @NotBlank(message = "Facility name is required")
+    @Size(max = 200, message = "Facility name must not exceed 200 characters")
     private String name;
 
-    /// Type of facility: "Hospital", "Clinic", or "Health Center"
+    @NotBlank(message = "Facility type is required")
+    @Size(max = 50, message = "Facility type must not exceed 50 characters")
     private String type;
 
-    /// Administrative region. Example: "Attica", "Central Macedonia"
+    @Size(max = 100, message = "Region must not exceed 100 characters")
     private String region;
 
-    /// District within the region. Example: "Athens", "Thessaloniki"
+    @Size(max = 100, message = "District must not exceed 100 characters")
     private String district;
 
-    /// Geographic coordinates - Latitude (e.g., 37.9838)
     private Double latitude;
-
-    /// Geographic coordinates - Longitude (e.g., 23.7275)
     private Double longitude;
-
-    /// Whether the facility is currently active in the system.
-    /// Inactive facilities remain in the database for historical data
-    /// but won't appear in data entry forms.
     private Boolean active;
-
-    /// When this facility was created in the system.
-    /// Included in response for audit purposes.
     private LocalDateTime createdAt;
-
-    /// When this facility was last updated.
-    /// Useful for tracking changes and cache invalidation.
     private LocalDateTime updatedAt;
 }

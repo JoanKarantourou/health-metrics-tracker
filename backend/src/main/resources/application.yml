@@ -9,20 +9,37 @@ spring:
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
 
   # JPA/Hibernate configuration
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
-        format_sql: true
+        format_sql: false
         dialect: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
 
 # Server configuration
 server:
   port: 8080
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain
+    min-response-size: 1024
+
+# Logging configuration
+logging:
+  level:
+    root: INFO
+    com.healthmetrics.tracker: INFO
+    org.springframework.cache: INFO
 
 # SpringDoc OpenAPI configuration
 springdoc:

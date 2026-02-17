@@ -32,7 +32,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/data-values")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:3000")
 public class DataValueController {
 
     /// Service is injected via constructor (using @RequiredArgsConstructor)

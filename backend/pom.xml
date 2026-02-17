@@ -62,6 +62,12 @@
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
 		</dependency>
+		<!-- Caching -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-cache</artifactId>
+		</dependency>
+
 		<!-- Swagger/OpenAPI Documentation -->
 		<dependency>
 			<groupId>org.springdoc</groupId>

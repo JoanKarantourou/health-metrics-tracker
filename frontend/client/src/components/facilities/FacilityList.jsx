@@ -109,7 +109,15 @@ function FacilityList() {
       setError(null);
     } catch (err) {
       console.error("Error fetching facilities:", err);
-      setError("Failed to load facilities. Please try again.");
+      if (err.response?.status === 429) {
+        setError("Too many requests. Please wait a moment and try again.");
+      } else if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else if (err.code === "ERR_NETWORK") {
+        setError("Cannot connect to the server. Please ensure the backend is running.");
+      } else {
+        setError("Failed to load facilities. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -223,10 +231,15 @@ function FacilityList() {
   }
 
   // Error state
-  if (error) {
+  if (error && facilities.length === 0) {
     return (
       <div className="facility-list-container">
-        <div className="error">{error}</div>
+        <div className="error">
+          <p>{error}</p>
+          <button onClick={fetchFacilities} className="clear-filters-btn">
+            Retry
+          </button>
+        </div>
       </div>
     );
   }

@@ -27,7 +27,6 @@ import com.healthmetrics.tracker.exception.DuplicateResourceException;
 @RestController
 @RequestMapping("/api/facilities")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:3000")
 public class FacilityController {
 
     /// Service is injected via constructor

@@ -21,7 +21,11 @@ import java.time.LocalDateTime;
  * and belongs to a category (Maternal Health, Disease Control, etc.).
  */
 @Entity
-@Table(name = "health_indicators")
+@Table(name = "health_indicators", indexes = {
+        @Index(name = "idx_indicator_category", columnList = "category"),
+        @Index(name = "idx_indicator_active", columnList = "active"),
+        @Index(name = "idx_indicator_data_type", columnList = "data_type")
+})
 @EntityListeners(AuditingEntityListener.class)
 @Data
 @NoArgsConstructor

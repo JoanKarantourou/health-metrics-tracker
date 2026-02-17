@@ -3,6 +3,7 @@ package com.healthmetrics.tracker.dto;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -67,12 +68,9 @@ public class DataValueCreateRequest {
     @NotNull(message = "Value is required")
     private BigDecimal value;
 
-    /// Optional comment about this data submission.
-    /// Limited to 500 characters (enforced at entity level).
+    @Size(max = 500, message = "Comment must not exceed 500 characters")
     private String comment;
 
-    /// Username of the person submitting this data.
-    /// In a real application, this would come from authentication context.
-    /// For now, it can be provided in the request or set by the service layer.
+    @Size(max = 100, message = "CreatedBy must not exceed 100 characters")
     private String createdBy;
 }

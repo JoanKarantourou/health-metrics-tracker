@@ -1,10 +1,12 @@
 package com.healthmetrics.tracker.exception;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 /**
  * Standard error response structure sent to clients when exceptions occur.
@@ -13,6 +15,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ErrorResponse {
 
     private LocalDateTime timestamp;
@@ -20,6 +23,7 @@ public class ErrorResponse {
     private String error;
     private String message;
     private String path;
+    private Map<String, String> fieldErrors;
 
     /**
      * Constructor for creating error responses with automatic timestamp.

@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
@@ -377,7 +378,7 @@ public class DataValueService {
         return total.divide(
                 BigDecimal.valueOf(filteredValues.size()),
                 2,
-                BigDecimal.ROUND_HALF_UP);
+                RoundingMode.HALF_UP);
     }
 
     // ==================== VALIDATION METHODS ====================

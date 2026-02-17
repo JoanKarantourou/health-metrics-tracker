@@ -401,7 +401,9 @@ function DataEntryForm() {
             onChange={handleChange}
             placeholder="Add any additional notes..."
             rows="3"
+            maxLength="500"
           />
+          <span className="char-count">{formData.comment.length}/500</span>
         </div>
 
         {/* Form Actions */}

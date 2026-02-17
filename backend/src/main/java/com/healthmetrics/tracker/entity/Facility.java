@@ -18,7 +18,12 @@ import java.time.LocalDateTime;
  */
 
 @Entity
-@Table(name = "facilities")
+@Table(name = "facilities", indexes = {
+        @Index(name = "idx_facility_region", columnList = "region"),
+        @Index(name = "idx_facility_active", columnList = "active"),
+        @Index(name = "idx_facility_type", columnList = "type"),
+        @Index(name = "idx_facility_region_type", columnList = "region, type")
+})
 @EntityListeners(AuditingEntityListener.class)
 @Data
 @NoArgsConstructor
