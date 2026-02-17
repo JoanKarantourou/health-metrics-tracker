@@ -1,6 +1,12 @@
 # Health Metrics Tracker (HMT)
 
-A full-stack application for tracking, aggregating, and visualizing health indicators across healthcare facilities — inspired by [DHIS2](https://dhis2.org/)'s core functionality with a focused scope.
+![Java](https://img.shields.io/badge/Java-21-orange?logo=openjdk)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.2-green?logo=springboot)
+![React](https://img.shields.io/badge/React-19-blue?logo=react)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue?logo=postgresql)
+![License](https://img.shields.io/badge/License-MIT-yellow)
+
+A full-stack application for tracking, aggregating, and visualizing health indicators across healthcare facilities.
 
 ## Table of Contents
 
@@ -11,10 +17,13 @@ A full-stack application for tracking, aggregating, and visualizing health indic
 - [Project Structure](#project-structure)
 - [Prerequisites](#prerequisites)
 - [Setup Instructions](#setup-instructions)
+- [Docker Deployment](#docker-deployment)
 - [API Endpoints](#api-endpoints)
+- [API Documentation (Swagger)](#api-documentation-swagger)
 - [Database Schema](#database-schema)
 - [Testing](#testing)
 - [Future Enhancements](#future-enhancements)
+- [Contributing](#contributing)
 - [Author](#author)
 - [License](#license)
 
@@ -37,9 +46,11 @@ The system follows a layered architecture with a Spring Boot REST API backend an
 - Spring Boot 4.0.2
 - Spring Data JPA (Hibernate)
 - Spring Security
+- Spring Cache
 - PostgreSQL
 - Maven
 - Lombok
+- SpringDoc OpenAPI (Swagger UI)
 
 **Frontend:**
 - React 19
@@ -53,6 +64,10 @@ The system follows a layered architecture with a Spring Boot REST API backend an
 **Testing:**
 - JUnit 5 & Mockito (backend unit + integration tests)
 - React Testing Library (frontend component tests)
+
+**DevOps:**
+- Docker & Docker Compose
+- Nginx (frontend serving & reverse proxy)
 
 ## Architecture
 
@@ -105,13 +120,27 @@ The system follows a layered architecture with a Spring Boot REST API backend an
 - Field-level validation error messages
 - Request/response logging
 
+**Security**
+- Centralized CORS configuration
+- Security headers (X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy)
+- Rate limiting (100 requests/minute per IP)
+- Input validation with Jakarta Bean Validation annotations
+
+**Performance**
+- Database indexes on frequently queried columns
+- Spring Cache for frequently accessed data
+- Read-only transactions for query operations
+- HikariCP connection pool tuning
+- Frontend lazy loading with React.lazy() and Suspense
+- Response compression (gzip)
+
 ## Project Structure
 
 ```
 health-metrics-tracker/
 ├── backend/
 │   ├── src/main/java/com/healthmetrics/tracker/
-│   │   ├── config/          # SecurityConfig, DataSeeder
+│   │   ├── config/          # SecurityConfig, CacheConfig, DataSeeder, RateLimitFilter
 │   │   ├── controller/      # REST API controllers
 │   │   ├── dto/             # Data Transfer Objects
 │   │   ├── entity/          # JPA entities (Facility, HealthIndicator, DataValue)
@@ -122,13 +151,14 @@ health-metrics-tracker/
 │   ├── src/test/java/       # Unit & integration tests
 │   ├── src/main/resources/
 │   │   └── application.yml  # Application configuration
+│   ├── Dockerfile           # Backend container image
 │   └── pom.xml              # Maven dependencies
 ├── frontend/
 │   └── client/
 │       ├── src/
 │       │   ├── pages/       # Dashboard, FacilitiesPage, DataEntryPage
 │       │   ├── components/  # Reusable UI components
-│       │   │   ├── common/      # Navigation
+│       │   │   ├── common/      # Navigation, ErrorBoundary
 │       │   │   ├── facilities/  # FacilityList
 │       │   │   ├── dataentry/   # DataEntryForm
 │       │   │   └── indicators/  # Indicator components
@@ -136,11 +166,17 @@ health-metrics-tracker/
 │       │   ├── hooks/       # Custom React hooks
 │       │   ├── utils/       # Utility functions
 │       │   └── App.js       # Root component with routing
+│       ├── Dockerfile       # Frontend container image
 │       └── package.json     # npm dependencies
 ├── docs/
-│   ├── API_TESTING.md                              # API testing guide
-│   ├── Health-Metrics-Tracker.postman_collection.json  # Postman collection
-│   └── HMT-Project-Roadmap_(Health_Metrics_Tracker).pdf
+│   ├── API.md               # Comprehensive API documentation
+│   ├── API_TESTING.md       # API testing guide with cURL examples
+│   ├── ARCHITECTURE.md      # System architecture documentation
+│   ├── DEPLOYMENT.md        # Deployment and Docker instructions
+│   └── Health-Metrics-Tracker.postman_collection.json
+├── docker-compose.yml       # Multi-container orchestration
+├── CONTRIBUTING.md          # Contribution guidelines
+├── LICENSE                  # MIT License
 └── README.md
 ```
 
@@ -150,7 +186,7 @@ health-metrics-tracker/
 - **Node.js 20 LTS** (or later)
 - **PostgreSQL 16+**
 - **Maven** (or use the included Maven wrapper)
-- **Postman** (optional, for API testing)
+- **Docker & Docker Compose** (optional, for containerized deployment)
 
 ## Setup Instructions
 
@@ -189,6 +225,20 @@ npm start
 ```
 
 The frontend starts on **http://localhost:3000**.
+
+## Docker Deployment
+
+Run the entire stack with Docker Compose:
+
+```bash
+# Build and start all services
+docker-compose up --build
+
+# Or run in detached mode
+docker-compose up --build -d
+```
+
+This starts PostgreSQL, the Spring Boot backend, and the Nginx-served React frontend. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for detailed deployment instructions.
 
 ## API Endpoints
 
@@ -235,7 +285,14 @@ The frontend starts on **http://localhost:3000**.
 | GET | `/api/data-values/average` | Get average for an indicator |
 | DELETE | `/api/data-values/{id}` | Delete a data value |
 
-For detailed request/response examples and cURL commands, see [docs/API_TESTING.md](docs/API_TESTING.md).
+For detailed request/response examples and cURL commands, see [docs/API.md](docs/API.md) and [docs/API_TESTING.md](docs/API_TESTING.md).
+
+## API Documentation (Swagger)
+
+When the backend is running, interactive API documentation is available at:
+
+- **Swagger UI:** http://localhost:8080/swagger-ui.html
+- **OpenAPI JSON:** http://localhost:8080/v3/api-docs
 
 ## Database Schema
 
@@ -309,11 +366,14 @@ Tests include component tests for Dashboard, FacilityList, and DataEntryForm usi
 
 - User authentication and role-based access control
 - CSV/Excel data export
-- Docker containerization with docker-compose
-- Swagger/OpenAPI documentation
-- Advanced data validation rules
-- Performance optimization (database indexes, caching, lazy loading)
 - Additional chart types and dashboard customization
+- Email notifications and alerts for threshold breaches
+- Audit trail for data changes
+- Multi-language support (i18n)
+
+## Contributing
+
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to get started.
 
 ## Author
 
@@ -321,4 +381,4 @@ Tests include component tests for Dashboard, FacilityList, and DataEntryForm usi
 
 ## License
 
-This project is part of a learning portfolio to demonstrate full-stack development skills.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
