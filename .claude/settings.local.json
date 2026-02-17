@@ -12,7 +12,8 @@
       "WebSearch",
       "Bash(pip install:*)",
       "Bash(python:*)",
-      "Bash(./mvnw compile:*)"
+      "Bash(./mvnw compile:*)",
+      "Bash(ls:*)"
     ]
   }
 }
