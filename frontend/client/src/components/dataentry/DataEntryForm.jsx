@@ -63,9 +63,14 @@ function DataEntryForm() {
         indicatorService.getAll(),
       ]);
 
+      // facilityService returns a Page object with .content array
+      const facilitiesData =
+        facilitiesResponse.data.content || facilitiesResponse.data;
+      const indicatorsData = indicatorsResponse.data;
+
       // Filter only active facilities and indicators
-      setFacilities(facilitiesResponse.data.filter((f) => f.active));
-      setIndicators(indicatorsResponse.data.filter((i) => i.active));
+      setFacilities(facilitiesData.filter((f) => f.active));
+      setIndicators(indicatorsData.filter((i) => i.active));
 
       console.log("✅ Loaded dropdown data");
     } catch (err) {

@@ -72,13 +72,16 @@ function Dashboard() {
       setLoading(true);
       setError(null);
 
-      // Fetch facilities, indicators in parallel
+      // Fetch facilities and indicators in parallel
+      // facilityService.getAll() returns a Page object, so we use size=1000 to get all
       const [facilitiesResponse, indicatorsResponse] = await Promise.all([
-        facilityService.getAll(),
+        facilityService.getAll({ size: 1000 }),
         indicatorService.getAll(),
       ]);
 
-      const facilities = facilitiesResponse.data;
+      // facilityService returns a Page object with .content array
+      const facilities =
+        facilitiesResponse.data.content || facilitiesResponse.data;
       const indicators = indicatorsResponse.data;
 
       // Calculate statistics
@@ -86,7 +89,7 @@ function Dashboard() {
         totalFacilities: facilities.length,
         activeFacilities: facilities.filter((f) => f.active).length,
         totalIndicators: indicators.filter((i) => i.active).length,
-        totalDataValues: 0, // We'll update this if we fetch all data values
+        totalDataValues: 0,
       });
 
       // Set indicators for dropdown

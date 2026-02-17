@@ -6,8 +6,10 @@
 import apiClient from "./api";
 
 const facilityService = {
-  getAll: () => {
-    return apiClient.get("/facilities");
+  // Accepts optional params for filtering and pagination
+  // params can include: page, size, sort, direction, search, region, type, active
+  getAll: (params = {}) => {
+    return apiClient.get("/facilities", { params });
   },
 
   getById: (id) => {

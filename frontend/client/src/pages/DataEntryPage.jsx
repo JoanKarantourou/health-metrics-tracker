@@ -1,13 +1,28 @@
-/**
- * Data Entry Page
- * Page wrapper for the DataEntryForm component
- */
+const fetchDropdownData = async () => {
+  try {
+    setLoading(true);
+    setError(null);
 
-import React from "react";
-import DataEntryForm from "../components/dataentry/DataEntryForm";
+    // Fetch both in parallel
+    const [facilitiesResponse, indicatorsResponse] = await Promise.all([
+      facilityService.getAll({ size: 1000 }),
+      indicatorService.getAll(),
+    ]);
 
-function DataEntryPage() {
-  return <DataEntryForm />;
-}
+    // facilityService returns a Page object with .content array
+    const facilitiesData =
+      facilitiesResponse.data.content || facilitiesResponse.data;
+    const indicatorsData = indicatorsResponse.data;
 
-export default DataEntryPage;
+    // Filter only active facilities and indicators
+    setFacilities(facilitiesData.filter((f) => f.active));
+    setIndicators(indicatorsData.filter((i) => i.active));
+
+    console.log("✅ Loaded dropdown data");
+  } catch (err) {
+    console.error("❌ Error loading dropdown data:", err);
+    setError("Failed to load form data. Please ensure the backend is running.");
+  } finally {
+    setLoading(false);
+  }
+};
